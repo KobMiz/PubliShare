@@ -1,0 +1,35 @@
+/* ודא שה-HTML תופס את כל גובה המסך */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+   direction: rtl;
+  text-align: right;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* קונטיינר ראשי של האפליקציה */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* תוכן עיקרי שדוחף את הפוטר למטה */
+main {
+  flex: 1;
+  padding: 1rem;
+}
+
+/* הפוטר */
+footer {
+  width: 100%;
+  background-color: #f8f9fa;
+  border-top: 1px solid #ddd;
+  text-align: center;
+  padding: 0.5rem;
+}

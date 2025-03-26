@@ -1,0 +1,16 @@
+# Node dependencies
+node_modules/
+
+# Production & Build folders
+dist/
+build/
+
+# Environment variables
+.env
+
+# Log files
+npm-debug.log*
+yarn-error.log*
+
+# Testing coverage
+coverage/
