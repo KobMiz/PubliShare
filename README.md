@@ -210,3 +210,14 @@ PubliShare/
 - הוספת בדיקות אוטומטיות עם Jest.
 - הטמעת ניהול תור ובקשות במקביל (Concurrency Management).
 - שיפורי ביצועים עם סקאלאביליות למשתמשים רבים.
+---
+
+## 📚 **Swagger Viewer**
+
+ניתן לצפות בתיעוד המלא של ה־API באמצעות Swagger בקישור הבא (לאחר הפעלת השרת המקומי):
+
+🔗 [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+
+ב־Swagger תוכל לבדוק את כל מסלולי המשתמשים, הפוסטים, התגובות והחיפוש בצורה אינטראקטיבית, כולל אפשרות לשלוח בקשות ישירות מהדפדפן.
+
+---
