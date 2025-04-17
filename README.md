@@ -201,7 +201,7 @@ PubliShare/
 לשאלות, בעיות או פידבק — ניתן ליצור קשר באחת מהדרכים הבאות:
 
 - דרך [GitHub Issues](https://github.com/KobMiz/PubliShare/issues)
-- במייל: [kobimizrachi.dev@gmail.com](mailto:kobimizrachi.dev@gmail.com)
+- במייל: [kobimizrachi@icloud.com](mailto:kobimizrachi@icloud.com)
 
 ---
 
