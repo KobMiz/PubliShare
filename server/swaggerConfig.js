@@ -4,15 +4,15 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "My API Documentation",
+      title: "PubliShare API",
       version: "1.0.0",
       description:
-        "Comprehensive documentation for my API, which supports user management and business cards.",
+        "תיעוד מלא ל־API של רשת חברתית מבית KobMiz. כולל ניהול משתמשים, פוסטים, תגובות, חיפוש ועוד.",
       contact: {
-        name: "Your Name",
-        email: "your.email@example.com",
+        name: "Kobi Mizrachi",
+        email: "kobimizrachi@icloud.com",
       },
-      termsOfService: "http://example.com/terms",
+      termsOfService: "https://github.com/KobMiz/PubliShare",
     },
     servers: [
       {
@@ -24,6 +24,15 @@ const options = {
         description: "Production server",
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
   },
   apis: ["./routes/*.js"],
 };

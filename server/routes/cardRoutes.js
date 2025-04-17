@@ -263,8 +263,63 @@ router.delete("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /cards/{id}/like:
+ *   patch:
+ *     summary: Toggle like on a post
+ *     description: Add or remove a like for the given post by the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the post to like/unlike
+ *     responses:
+ *       200:
+ *         description: Post like toggled successfully
+ *       404:
+ *         description: Post not found
+ *       401:
+ *         description: Unauthorized
+ */
 router.patch("/:id/like", authMiddleware, toggleLike);
 
+/**
+ * @swagger
+ * /cards/{id}/comments:
+ *   post:
+ *     summary: Add a comment to a post
+ *     description: Add a new comment to the specified post.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the post to comment on
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               text:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Comment added successfully
+ *       400:
+ *         description: Validation error or bad input
+ *       404:
+ *         description: Post not found
+ */
 router.post("/:id/comments", authMiddleware, async (req, res) => {
   const { error } = commentSchema.validate(req.body);
   if (error) return res.status(400).json({ error: error.details[0].message });
@@ -272,6 +327,46 @@ router.post("/:id/comments", authMiddleware, async (req, res) => {
   return require("../controllers/cardController").addComment(req, res);
 });
 
+/**
+ * @swagger
+ * /cards/{postId}/comments/{commentId}:
+ *   patch:
+ *     summary: Edit a comment
+ *     description: Edit an existing comment by its ID on a specific post.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the post
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the comment to edit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               text:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Comment updated successfully
+ *       400:
+ *         description: Validation error or invalid ID
+ *       403:
+ *         description: Unauthorized to edit comment
+ *       404:
+ *         description: Post or comment not found
+ */
 router.patch("/:postId/comments/:commentId", authMiddleware, async (req, res) => {
   try {
     const { postId, commentId } = req.params;
@@ -311,7 +406,35 @@ router.patch("/:postId/comments/:commentId", authMiddleware, async (req, res) =>
   }
 });
 
-
+/**
+ * @swagger
+ * /cards/{postId}/comments/{commentId}:
+ *   delete:
+ *     summary: Delete a comment
+ *     description: Delete a comment by its ID from a specific post.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the post
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the comment to delete
+ *     responses:
+ *       200:
+ *         description: Comment deleted successfully
+ *       404:
+ *         description: Post or comment not found
+ *       500:
+ *         description: Internal server error
+ */
 router.delete(
   "/:postId/comments/:commentId",
   authMiddleware,

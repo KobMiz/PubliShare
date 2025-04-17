@@ -66,25 +66,31 @@ npm install
 
 ### 3️⃣ **הגדרת משתני סביבה**:
 
-צור קובץ `.env` בתיקיית השורש של הפרויקט עם המשתנים הבאים:
+צור קובץ `.env` בתיקיית `server` על בסיס הקובץ `env.example` המצורף, עם הערכים הבאים:
 
 ```env
-PORT=5000
+PORT=3000
 MONGO_URI=your-mongodb-connection-string
+MONGO_URI_PROD=your-mongodb-production-string
 JWT_SECRET=your-jwt-secret
 NODE_ENV=development
+EMAIL_USER=your-email@example.com
+EMAIL_PASS=your-email-password
 ```
 
-### 4️⃣ **הפעל את השרת**:
+📄 קובץ לדוגמה בשם `env.example` נמצא בפרויקט – השתמש בו כבסיס ליצירת `.env`.
 
-#### בסביבת פיתוח:
+### 3.5️⃣ **(אופציונלי) הזנת נתוני התחלה ל-DB**:
+
+להרצת משתמשים וכרטיסים התחלתיים (seed), הרץ:
 
 ```bash
-cd server
-npm run dev
+npm run seed
 ```
 
-#### בסביבת ייצור:
+> ⚠️ ודא שמוגדר `MONGO_URI` תקף בקובץ `.env` לפני ההרצה.
+
+### 4️⃣ **הפעל את השרת**:
 
 ```bash
 npm start
@@ -93,7 +99,7 @@ npm start
 ### 5️⃣ **הפעל את הלקוח**:
 
 ```bash
-cd client
+cd ../client
 npm run dev
 ```
 
@@ -104,7 +110,7 @@ npm run dev
 ה־API של PubliShare מתועד באמצעות **Swagger**. כדי לגשת לדוקומנטציה:
 
 1. הפעל את השרת.
-2. עבור ל־`http://localhost:5000/api-docs` בדפדפן שלך.
+2. עבור ל־[http://localhost:3000/api-docs](http://localhost:3000/api-docs)
 
 ### 📝 **Routes לדוגמה**:
 
@@ -116,11 +122,11 @@ npm run dev
 - `DELETE /users/:id`: מחיקת משתמש (Admin בלבד).
 
 #### **פוסטים**:
-- `POST /posts`: יצירת פוסט חדש.
-- `GET /posts`: קבלת כל הפוסטים.
-- `PATCH /posts/:id/like`: הוספת/הסרת לייק לפוסט.
-- `PUT /posts/:id`: עדכון פוסט.
-- `DELETE /posts/:id`: מחיקת פוסט (Admin בלבד).
+- `POST /cards`: יצירת פוסט חדש.
+- `GET /cards`: קבלת כל הפוסטים.
+- `PATCH /cards/:id/like`: הוספת/הסרת לייק לפוסט.
+- `PUT /cards/:id`: עדכון פוסט.
+- `DELETE /cards/:id`: מחיקת פוסט (Admin בלבד).
 
 #### Sample API Request and Response:
 
@@ -153,14 +159,14 @@ PubliShare/
 │   ├── controllers/
 │   ├── middlewares/
 │   ├── config/
-│   ├── .env
+│   ├── initialData.js
+│   ├── .env.example
 │   ├── index.js
 ├── client/
 │   ├── src/
 │   ├── components/
 │   ├── pages/
 │   ├── public/
-│   ├── package.json
 ├── .gitignore
 ├── README.md
 └── package.json
@@ -173,15 +179,15 @@ PubliShare/
 - **Core**: Express, Mongoose, Dotenv
 - **Authentication**: BcryptJS, JSON Web Token (JWT)
 - **Frontend**: React, MUI, TailwindCSS
-- **Utilities**: Morgan, CORS
+- **Utilities**: Morgan, CORS, Nodemailer, Joi, Swagger
 
 ---
 
 ## 🌍 **Deployment**
 
-1. ודא שהגדרת את משתני הסביבה לייצור.
-2. פרוס לפלטפורמות כמו **Heroku**, **AWS**, או **Vercel**.
-3. ודא שהחיבור ל־MongoDB Atlas עובד בסביבת ייצור.
+1. ודא שהגדרת את משתני הסביבה לייצור (`MONGO_URI_PROD`, `NODE_ENV=production`).
+2. פרוס לפלטפורמות כמו **Heroku**, **Render**, **AWS**, או **Vercel**.
+3. ודא שהחיבור ל־MongoDB Atlas עובד.
 
 ---
 

@@ -37,6 +37,11 @@ const upload = multer({ storage });
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - password
  *             properties:
  *               firstName:
  *                 type: string
@@ -63,6 +68,8 @@ const upload = multer({ storage });
  *         description: User registered successfully
  *       400:
  *         description: Validation error or email exists
+ *       500:
+ *         description: Server error
  */
 router.post("/register", upload.single("profileImage"), async (req, res) => {
   const {
@@ -139,6 +146,9 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - email
+ *               - password
  *             properties:
  *               email:
  *                 type: string
@@ -149,10 +159,10 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
  *         description: Login successful
  *       400:
  *         description: Invalid credentials
- *       403:
- *         description: Account locked
  *       404:
  *         description: User not found
+ *       500:
+ *         description: Server error
  */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -192,6 +202,25 @@ router.post("/login", async (req, res) => {
  *   post:
  *     summary: Upload user profile image
  *     description: Upload a profile image for the logged-in user.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Image uploaded successfully
+ *       400:
+ *         description: No file uploaded
+ *       500:
+ *         description: Error saving image
  */
 router.post(
   "/profile-image",
@@ -220,7 +249,26 @@ router.post(
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Get user profile by ID
+ *     summary: Get own profile
+ *     description: Retrieve the authenticated user's full profile by ID.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user
+ *     responses:
+ *       200:
+ *         description: User profile
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
  */
 router.get("/:id", authMiddleware, async (req, res) => {
   try {
@@ -243,7 +291,24 @@ router.get("/:id", authMiddleware, async (req, res) => {
  * @swagger
  * /users/user-profile/{id}:
  *   get:
- *     summary: View another user's profile
+ *     summary: View public profile of another user
+ *     description: Retrieve public profile fields of another user by ID.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user
+ *     responses:
+ *       200:
+ *         description: User profile
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
  */
 router.get("/user-profile/:id", authMiddleware, async (req, res) => {
   try {
@@ -258,6 +323,48 @@ router.get("/user-profile/:id", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   patch:
+ *     summary: Update user profile
+ *     description: Allows a user to update their own profile details.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               nickname:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 router.patch("/:id", authMiddleware, async (req, res) => {
   try {
     if (req.user._id !== req.params.id && !req.user.isAdmin) {
@@ -276,6 +383,37 @@ router.patch("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   put:
+ *     summary: Admin - Update any user profile
+ *     description: Allows an admin to update any user's full details.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 router.put(
   "/:id",
   authMiddleware,
@@ -303,6 +441,29 @@ router.put(
   }
 );
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Admin - Delete a user
+ *     description: Allows an admin to delete a user by ID.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user to delete
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 router.delete(
   "/:id",
   authMiddleware,
