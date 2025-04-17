@@ -1,4 +1,3 @@
-
 # PubliShare - רשת חברתית מבית KobMiz
 
 PubliShare הוא פרויקט רשת חברתית שמאפשר למשתמשים **לשתף פוסטים**, **לעקוב אחרי תכנים**, ולהתנסות באינטראקציות כמו **לייקים** ו**חיפושים**. הפרויקט כולל את כל התכנים שאתם צריכים ברשת חברתית מודרנית, כולל חוויית משתמש מותאמת במובייל ודסקטופ.
@@ -199,7 +198,10 @@ PubliShare/
 
 ## 💬 **Support**
 
-לשאלות או בעיות, ניתן ליצור קשר דרך [GitHub Issues](https://github.com/KobMiz/PubliShare/issues).
+לשאלות, בעיות או פידבק — ניתן ליצור קשר באחת מהדרכים הבאות:
+
+- דרך [GitHub Issues](https://github.com/KobMiz/PubliShare/issues)
+- במייל: [kobimizrachi.dev@gmail.com](mailto:kobimizrachi.dev@gmail.com)
 
 ---
 
