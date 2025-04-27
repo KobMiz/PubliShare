@@ -55,7 +55,6 @@ const Favorites = () => {
 
   const isMobileView = useMediaQuery("(max-width:899px)");
 
-  // 🛠️ העברנו את fetchFavorites החוצה מה-useEffect
   const fetchFavorites = async () => {
     try {
       const { data } = await axios.get("/cards", {

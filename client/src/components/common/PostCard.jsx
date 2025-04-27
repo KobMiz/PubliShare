@@ -209,7 +209,6 @@ const PostCard = ({
         )}
       </Box>
 
-      {/* ⬇️ עוטפים את כל האזור הזה בלחיצה */}
       <CardContent
         sx={{ textAlign: "center", cursor: "pointer" }}
         onClick={handleNavigate}

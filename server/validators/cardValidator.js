@@ -1,6 +1,5 @@
 const Joi = require("joi");
 
-// Card schema
 const cardSchema = Joi.object({
   text: Joi.string().max(500).required().messages({
     "string.max": "Text cannot exceed 500 characters.",
@@ -22,7 +21,6 @@ const cardSchema = Joi.object({
   }),
 });
 
-// Comment schema
 const commentSchema = Joi.object({
   text: Joi.string().max(300).required().messages({
     "string.max": "Comment cannot exceed 300 characters.",

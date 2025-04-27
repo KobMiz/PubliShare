@@ -105,7 +105,7 @@ const PostDetails = () => {
       await axios.delete(`/cards/${postId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      navigate("/"); // אחרי מחיקה חוזרים לדף הבית
+      navigate("/");
     } catch (err) {
       console.error("❌ שגיאה במחיקת פוסט:", err);
     }

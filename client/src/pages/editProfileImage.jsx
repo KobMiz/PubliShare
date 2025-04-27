@@ -230,14 +230,13 @@ const EditProfileImage = () => {
             variant="outlined"
             color="primary"
             onClick={() => navigate("/profile")}
-            startIcon={<ArrowForwardIosIcon />} // שים לב! חזרנו להשתמש ב-startIcon
+            startIcon={<ArrowForwardIosIcon />}
             sx={{ minWidth: 130, gap: 2 }}
           >
             חזור
           </Button>
         </Tooltip>
 
-        {/* כפתור שמירה */}
         <Button
           variant="contained"
           color="primary"
@@ -248,7 +247,6 @@ const EditProfileImage = () => {
           {loading ? <CircularProgress size={24} /> : "שמור"}
         </Button>
 
-        {/* כפתור מחיקה */}
         <Button
           variant="outlined"
           color="error"

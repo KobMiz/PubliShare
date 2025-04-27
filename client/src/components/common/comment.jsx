@@ -4,7 +4,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import axios from "axios";
-import { Link } from "react-router-dom"; // ← הוספה חשובה
+import { Link } from "react-router-dom";
 
 const Comment = ({ comment, postId, token, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);

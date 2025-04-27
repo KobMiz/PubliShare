@@ -185,14 +185,14 @@ const EditProfile = () => {
         InputLabelProps={{ shrink: true }}
         fullWidth
         margin="normal"
-        onClick={(e) => e.target.showPicker && e.target.showPicker()} // 💥 פותח את לוח השנה גם בלחיצה על כל השדה
+        onClick={(e) => e.target.showPicker && e.target.showPicker()}
         sx={{
           "& .MuiInputBase-root": {
             color: isDarkMode ? "grey.100" : "inherit",
           },
           "& .MuiInputBase-input": {
             color: isDarkMode ? "grey.100" : "inherit",
-            cursor: "pointer", // שיהיה גם חץ נחמד
+            cursor: "pointer",
           },
           "& .MuiSvgIcon-root": {
             color: isDarkMode ? "grey.100" : "inherit",

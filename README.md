@@ -6,23 +6,27 @@ PubliShare הוא פרויקט רשת חברתית שמאפשר למשתמשים
 
 ---
 
-## 🚀 **Key Features** 
+## 🚀 **Key Features**
 
 ### 🔐 **ניהול משתמשים**
+
 - **התחברות ורישום** באמצעות **JWT**.
 - **ניהול פרופילים** עם תמונות פרופיל.
 - **הרשאות לפי סוג משתמשים**: Admin ו-User.
 
 ### 📝 **ניהול פוסטים**
+
 - **CRUD לפוסטים**: יצירה, עדכון, מחיקה.
 - אינטראקציה עם פוסטים: **לייקים** ו**הערות**.
 - **חיפוש בתוך הפוסטים**.
 
 ### 🔒 **אימות מאובטח**
+
 - הצפנת סיסמאות עם **BcryptJS**.
 - **הגנה על מסלולים מוגנים** עם **JWT**.
 
 ### 🎨 **עיצוב מודרני**
+
 - **TailwindCSS** ו־**MUI** לעיצוב רספונסיבי וקל לשימוש.
 - **תמיכה במובייל ודסקטופ**.
 
@@ -114,6 +118,7 @@ npm run dev
 ### 📝 **Routes לדוגמה**:
 
 #### **משתמשים**:
+
 - `POST /users/register`: רישום משתמש חדש.
 - `POST /users/login`: התחברות.
 - `GET /users`: קבלת כל המשתמשים (Admin בלבד).
@@ -121,6 +126,7 @@ npm run dev
 - `DELETE /users/:id`: מחיקת משתמש (Admin בלבד).
 
 #### **פוסטים**:
+
 - `POST /cards`: יצירת פוסט חדש.
 - `GET /cards`: קבלת כל הפוסטים.
 - `PATCH /cards/:id/like`: הוספת/הסרת לייק לפוסט.
@@ -210,6 +216,7 @@ PubliShare/
 - הוספת בדיקות אוטומטיות עם Jest.
 - הטמעת ניהול תור ובקשות במקביל (Concurrency Management).
 - שיפורי ביצועים עם סקאלאביליות למשתמשים רבים.
+
 ---
 
 ## 📚 **Swagger Viewer**
