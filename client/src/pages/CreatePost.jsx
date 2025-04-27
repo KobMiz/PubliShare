@@ -33,14 +33,17 @@ const CreatePost = () => {
       return;
     }
 
-    try {
-      const postData = {
-        text,
-        image: imageUrl ? { url: imageUrl, alt: imageAlt } : undefined,
-        video,
-        link,
-      };
+    const postData = {
+      text,
+      image: {
+        url: imageUrl || "",
+        alt: imageAlt || "",
+      },
+      video: video || "",
+      link: link || "",
+    };
 
+    try {
       await axios.post("/cards", postData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -48,7 +51,7 @@ const CreatePost = () => {
       });
 
       setSuccess("הפוסט פורסם בהצלחה!");
-      setTimeout(() => navigate("/"), 1500); 
+      setTimeout(() => navigate("/"), 1500);
     } catch (err) {
       console.error("❌ שגיאה ביצירת הפוסט:", err);
       setError("אירעה שגיאה בעת פרסום הפוסט. נסה שוב.");

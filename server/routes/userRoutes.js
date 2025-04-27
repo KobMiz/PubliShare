@@ -6,31 +6,28 @@ const { userSchema } = require("../validators/userValidator");
 const authMiddleware = require("../middlewares/authMiddleware");
 const roleMiddleware = require("../middlewares/roleMiddleware");
 const multer = require("multer");
+const fs = require("fs");
 const path = require("path");
-const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("../swaggerConfig"); 
 
 const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); 
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); 
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
 const upload = multer({ storage });
-
-
 
 /**
  * @swagger
  * /users/register:
  *   post:
  *     summary: Register a new user
- *     description: Create a new user with optional profile image.
+ *     description: Register a user with optional profile image upload.
  *     requestBody:
  *       required: true
  *       content:
@@ -67,7 +64,7 @@ const upload = multer({ storage });
  *       201:
  *         description: User registered successfully
  *       400:
- *         description: Validation error or email exists
+ *         description: Email already exists
  *       500:
  *         description: Server error
  */
@@ -88,9 +85,7 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
     if (existingUser)
       return res.status(400).json({ error: "Email already exists" });
 
-    // הצפנת הסיסמה
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const imagePath = req.file
       ? `http://localhost:3000/${req.file.path.replace(/\\/g, "/")}`
       : undefined;
@@ -132,7 +127,6 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
     res.status(500).json({ error: "Error registering user" });
   }
 });
-
 
 /**
  * @swagger
@@ -194,7 +188,6 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "Error logging in" });
   }
 });
-
 
 /**
  * @swagger
@@ -262,7 +255,7 @@ router.post(
  *         description: ID of the user
  *     responses:
  *       200:
- *         description: User profile
+ *         description: User profile retrieved successfully
  *       403:
  *         description: Access denied
  *       404:
@@ -289,6 +282,64 @@ router.get("/:id", authMiddleware, async (req, res) => {
 
 /**
  * @swagger
+ * /users/profile-image:
+ *   delete:
+ *     summary: Delete the user's profile image
+ *     description: Allows a logged-in user to reset their profile picture to default.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile image reset successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/profile-image", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const defaultImageUrl =
+      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
+
+    // אם אין בכלל תמונה ייחודית למשתמש (כבר תמונת ברירת מחדל)
+    if (!user.image || user.image.includes("blank-profile-picture")) {
+      user.image = defaultImageUrl;
+      await user.save();
+      return res.status(200).json({
+        message: "No custom image to delete. Reset to default.",
+        image: user.image,
+      });
+    }
+
+    // אם כן קיימת תמונה אמיתית על השרת – מחק אותה
+    const serverImagePath = user.image.replace("http://localhost:3000/", "");
+    const absolutePath = path.join(__dirname, "..", serverImagePath);
+
+    if (fs.existsSync(absolutePath)) {
+      fs.unlinkSync(absolutePath);
+    }
+
+    user.image = defaultImageUrl;
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile image reset to default successfully.",
+      image: user.image,
+    });
+  } catch (error) {
+    console.error("❌ Error deleting profile image:", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * @swagger
  * /users/user-profile/{id}:
  *   get:
  *     summary: View public profile of another user
@@ -304,7 +355,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
  *         description: ID of the user
  *     responses:
  *       200:
- *         description: User profile
+ *         description: User profile retrieved successfully
  *       404:
  *         description: User not found
  *       500:
@@ -355,6 +406,8 @@ router.get("/user-profile/:id", authMiddleware, async (req, res) => {
  *                 type: string
  *               country:
  *                 type: string
+ *               birthdate:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Profile updated successfully
@@ -371,11 +424,24 @@ router.patch("/:id", authMiddleware, async (req, res) => {
       return res.status(403).json({ error: "Access denied" });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const updatedData = {
+      firstName: req.body.firstName || user.firstName,
+      lastName: req.body.lastName || user.lastName,
+      nickname: req.body.nickname || user.nickname,
+      phone: req.body.phone || user.phone,
+      country: req.body.country || user.country,
+      birthdate: req.body.birthdate || user.birthdate,
+      image: req.body.image || user.image,
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updatedData,
+      { new: true, runValidators: true }
+    );
 
     res.json(updatedUser);
   } catch (err) {

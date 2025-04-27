@@ -11,10 +11,12 @@ import {
 } from "@mui/material";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import PostCard from "../components/common/PostCard"; // ← לוודא שיש לך את זה
 
 const OtherUserProfile = () => {
   const { id } = useParams();
   const [user, setUser] = useState(null);
+  const [userPosts, setUserPosts] = useState([]); // ← חדש
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,19 +30,24 @@ const OtherUserProfile = () => {
           return;
         }
 
-        const response = await axios.get(`/users/user-profile/${id}`, {
+        // בקשה ראשונה: שליפת פרטי המשתמש
+        const userResponse = await axios.get(`/users/user-profile/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setUser(userResponse.data);
 
-        setUser(response.data); 
+        // בקשה שנייה: שליפת הפוסטים של היוזר
+        const postsResponse = await axios.get(`/cards?user_id=${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUserPosts(postsResponse.data);
       } catch (err) {
         console.error("שגיאה בטעינת פרופיל:", err);
-        setError("לא ניתן לטעון את פרטי המשתמש.");
+        setError("לא ניתן לטעון את פרטי המשתמש או הפוסטים.");
       } finally {
         setLoading(false);
       }
     };
-
 
     fetchData();
   }, [id]);
@@ -121,6 +128,29 @@ const OtherUserProfile = () => {
           </Box>
         </CardContent>
       </Card>
+
+      {/* פוסטים של המשתמש */}
+      <Box mt={5}>
+        <Typography variant="h6" fontWeight="bold" mb={3} textAlign="center">
+          פוסטים שפורסמו על ידי {user.firstName}:
+        </Typography>
+
+        {userPosts.length === 0 ? (
+          <Alert severity="info">אין פוסטים להצגה.</Alert>
+        ) : (
+          userPosts.map((post) => (
+            <PostCard
+              key={post._id}
+              {...post}
+              currentUserId={
+                localStorage.getItem("user")
+                  ? JSON.parse(localStorage.getItem("user"))._id
+                  : ""
+              }
+            />
+          ))
+        )}
+      </Box>
     </Box>
   );
 };

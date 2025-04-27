@@ -38,9 +38,8 @@ router.get("/", authMiddleware, async (req, res) => {
     }
 
     const posts = await Card.find(filter)
-      .populate("user_id", "firstName lastName avatar")
-      .populate("comments.user_id", "firstName lastName")
-      .sort({ createdAt: -1 });
+      .populate("user_id", "firstName lastName nickname image")
+      .populate("comments.user_id", "firstName lastName nickname image");
 
     res.status(200).json(posts);
   } catch (err) {
@@ -78,8 +77,8 @@ router.get("/:id", authMiddleware, async (req, res) => {
     }
 
     const post = await Card.findById(id)
-      .populate("user_id", "firstName lastName avatar")
-      .populate("comments.user_id", "firstName lastName");
+      .populate("user_id", "firstName lastName nickname image")
+      .populate("comments.user_id", "firstName lastName nickname image");
 
     if (!post) {
       return res.status(404).json({ error: "Post not found." });
@@ -188,18 +187,27 @@ router.post("/", authMiddleware, async (req, res) => {
 router.patch("/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-
     const post = await Card.findById(id);
+
     if (!post) {
       return res.status(404).json({ error: "Post not found." });
     }
 
     if (post.user_id.toString() === req.user._id || req.user.isAdmin) {
       const { text, image, video, link } = req.body;
-      post.text = text || post.text;
-      post.image = image || post.image;
-      post.video = video || post.video;
-      post.link = link || post.link;
+
+      if (text !== undefined) post.text = text;
+      if (typeof image === "string") {
+        post.image = { url: image }; // ← טיפול נכון אם זה URL פשוט
+      } else if (typeof image === "object" && image !== null) {
+        post.image = {
+          url: image.url || post.image.url,
+          alt: image.alt || post.image.alt,
+        };
+      }
+
+      if (video !== undefined) post.video = video;
+      if (link !== undefined) post.link = link;
 
       await post.save();
       res.status(200).json(post);
@@ -213,6 +221,7 @@ router.patch("/:id", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Internal server error." });
   }
 });
+
 
 /**
  * @swagger
@@ -367,44 +376,50 @@ router.post("/:id/comments", authMiddleware, async (req, res) => {
  *       404:
  *         description: Post or comment not found
  */
-router.patch("/:postId/comments/:commentId", authMiddleware, async (req, res) => {
-  try {
-    const { postId, commentId } = req.params;
-    const { text } = req.body;
-    const { _id, isAdmin } = req.user;
+router.patch(
+  "/:postId/comments/:commentId",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { postId, commentId } = req.params;
+      const { text } = req.body;
+      const { _id, isAdmin } = req.user;
 
-    if (!text || text.trim() === "") {
-      return res.status(400).json({ error: "Comment text is required." });
+      if (!text || text.trim() === "") {
+        return res.status(400).json({ error: "Comment text is required." });
+      }
+
+      if (
+        !mongoose.Types.ObjectId.isValid(postId) ||
+        !mongoose.Types.ObjectId.isValid(commentId)
+      ) {
+        return res.status(400).json({ error: "Invalid post or comment ID." });
+      }
+
+      const post = await Card.findById(postId);
+      if (!post) return res.status(404).json({ error: "Post not found." });
+
+      const comment = post.comments.id(commentId);
+      if (!comment)
+        return res.status(404).json({ error: "Comment not found." });
+
+      const isOwner = comment.user_id.toString() === _id;
+      if (!isOwner && !isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "You can only edit your own comments." });
+      }
+
+      comment.text = text;
+      await post.save();
+
+      res.json({ message: "Comment updated successfully.", comment });
+    } catch (err) {
+      console.error("❌ Error updating comment:", err);
+      res.status(500).json({ error: "Internal server error." });
     }
-
-    if (
-      !mongoose.Types.ObjectId.isValid(postId) ||
-      !mongoose.Types.ObjectId.isValid(commentId)
-    ) {
-      return res.status(400).json({ error: "Invalid post or comment ID." });
-    }
-
-    const post = await Card.findById(postId);
-    if (!post) return res.status(404).json({ error: "Post not found." });
-
-    const comment = post.comments.id(commentId);
-    if (!comment) return res.status(404).json({ error: "Comment not found." });
-
-    const isOwner = comment.user_id.toString() === _id;
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: "You can only edit your own comments." });
-    }
-
-    
-    comment.text = text;
-    await post.save();
-
-    res.json({ message: "Comment updated successfully.", comment });
-  } catch (err) {
-    console.error("❌ Error updating comment:", err);
-    res.status(500).json({ error: "Internal server error." });
   }
-});
+);
 
 /**
  * @swagger
@@ -452,12 +467,10 @@ router.delete(
         return res.status(404).json({ message: "Post or comment not found." });
       }
 
-      res
-        .status(200)
-        .json({
-          message: "Comment deleted successfully",
-          comments: updatedPost.comments,
-        });
+      res.status(200).json({
+        message: "Comment deleted successfully",
+        comments: updatedPost.comments,
+      });
     } catch (err) {
       console.error("❌ Error deleting comment:", err);
       res
@@ -466,6 +479,5 @@ router.delete(
     }
   }
 );
-
 
 module.exports = router;

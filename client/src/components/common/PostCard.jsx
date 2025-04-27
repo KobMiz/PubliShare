@@ -38,6 +38,7 @@ const PostCard = ({
   createdAt,
   currentUserId,
   user_id,
+  onFavoriteToggle,
 }) => {
   const { token } = useSelector((state) => state.user);
   const [isLiked, setIsLiked] = useState(
@@ -83,6 +84,10 @@ const PostCard = ({
       );
       setIsLiked(data.isLikedByCurrentUser);
       setLikeCount(data.likesCount);
+
+      if (onFavoriteToggle) {
+        onFavoriteToggle();
+      }
     } catch (err) {
       console.error("שגיאה בלחיצה על לייק:", err);
     }
@@ -91,12 +96,15 @@ const PostCard = ({
   const handleCommentSend = async () => {
     if (commentText.trim() === "") return;
     try {
-      const { data } = await axios.post(
+      await axios.post(
         `/cards/${_id}/comments`,
         { text: commentText },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setComments(data.comments);
+      const { data } = await axios.get(`/cards/${_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setComments(data.comments || []);
       setCommentText("");
     } catch (err) {
       console.error("❌ שגיאה בעת שליחת תגובה:", err);
@@ -111,6 +119,13 @@ const PostCard = ({
       window.location.reload();
     } catch (err) {
       console.error("❌ שגיאה במחיקת הפוסט:", err);
+    }
+  };
+
+  const handleNavigate = (e) => {
+    const tagName = e.target.tagName.toLowerCase();
+    if (tagName !== "a" && tagName !== "svg" && tagName !== "path") {
+      navigate(`/post/${_id}`);
     }
   };
 
@@ -142,15 +157,30 @@ const PostCard = ({
           px: 2,
         }}
       >
-        <MuiLink
-          component={Link}
-          to={`/users/user-profile/${user_id?._id}`}
-          underline="hover"
-          fontWeight="bold"
-          color="inherit"
-        >
-          {user_id?.firstName} {user_id?.lastName}
-        </MuiLink>
+        <Box display="flex" alignItems="center" gap={1}>
+          <MuiLink
+            component={Link}
+            to={`/users/user-profile/${user_id?._id}`}
+            underline="none"
+            sx={{ display: "flex", alignItems: "center" }}
+          >
+            <Avatar
+              src={user_id?.image}
+              alt={`${user_id?.firstName} ${user_id?.lastName}`}
+              sx={{ width: 32, height: 32 }}
+            />
+          </MuiLink>
+
+          <MuiLink
+            component={Link}
+            to={`/users/user-profile/${user_id?._id}`}
+            underline="hover"
+            fontWeight="bold"
+            color="inherit"
+          >
+            {user_id?.firstName} {user_id?.lastName}
+          </MuiLink>
+        </Box>
 
         {isOwnerOrAdmin && (
           <>
@@ -179,9 +209,13 @@ const PostCard = ({
         )}
       </Box>
 
-      <CardContent sx={{ textAlign: "center" }}>
+      {/* ⬇️ עוטפים את כל האזור הזה בלחיצה */}
+      <CardContent
+        sx={{ textAlign: "center", cursor: "pointer" }}
+        onClick={handleNavigate}
+      >
         {text && (
-          <Typography variant="body1" sx={{ mb: 2 }}>
+          <Typography variant="body1" sx={{ mb: 2, fontSize: 20 }}>
             {text}
           </Typography>
         )}
@@ -208,7 +242,7 @@ const PostCard = ({
               }}
             >
               <PlayCircleFilledIcon />
-              <Typography variant="body2">צפה בסרטון</Typography>
+              <Typography variant="body2">לצפייה בYouTube</Typography>
             </MuiLink>
           </Box>
         )}
@@ -227,7 +261,7 @@ const PostCard = ({
               }}
             >
               <LaunchIcon />
-              <Typography variant="body2">מעבר לקישור</Typography>
+              <Typography variant="body2">לצפייה בקישור המצורף</Typography>
             </MuiLink>
           </Box>
         )}
@@ -291,7 +325,7 @@ const PostCard = ({
           placeholder="הוסף תגובה..."
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
-          onKeyDown={handleKeyPress} 
+          onKeyDown={handleKeyPress}
         />
         <Button
           variant="contained"

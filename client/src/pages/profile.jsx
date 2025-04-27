@@ -9,17 +9,18 @@ import {
   Alert,
   Divider,
   IconButton,
+  Tooltip,
   useMediaQuery,
+  Button,
 } from "@mui/material";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Slider from "react-slick";
 import PostCard from "../components/common/PostCard";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { useSelector } from "react-redux";
-import { Button } from "@mui/material";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const PrevArrow = ({ onClick }) => (
   <IconButton
@@ -57,9 +58,10 @@ const NextArrow = ({ onClick }) => (
 
 const Profile = () => {
   const params = useParams();
-  const { user } = useSelector((state) => state.user); 
-  const id = params.id || user?._id; 
-  const [profileUser, setProfileUser] = useState(null); 
+  const { user } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+  const id = params.id || user?._id;
+  const [profileUser, setProfileUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -144,10 +146,10 @@ const Profile = () => {
       <Box display="flex" flexDirection="column" gap={4}>
         <Card
           sx={{
-            p: 3,
-            pt: 4,
+            p: 4,
             boxShadow: 4,
             borderRadius: 4,
+            width: 420,
             maxWidth: 420,
             mx: "auto",
             borderLeft: "6px solid",
@@ -157,22 +159,26 @@ const Profile = () => {
         >
           <CardContent>
             <Box textAlign="center" mb={3}>
-              <Avatar
-                sx={{
-                  width: 100,
-                  height: 100,
-                  mx: "auto",
-                  mb: 2,
-                  fontSize: 36,
-                  background: profileUser?.image
-                    ? "transparent"
-                    : "linear-gradient(135deg, #2196f3 0%, #21cbf3 100%)", 
-                  color: "white",
-                }}
-                src={profileUser?.image || undefined} 
-              >
-                {profileUser?.firstName?.[0]}{" "}
-              </Avatar>
+              <Tooltip title="לחץ לעריכת תמונה">
+                <Avatar
+                  onClick={() => navigate("/edit-profile-image")}
+                  sx={{
+                    width: 100,
+                    height: 100,
+                    mx: "auto",
+                    mb: 2,
+                    fontSize: 36,
+                    cursor: "pointer",
+                    background: profileUser?.image
+                      ? "transparent"
+                      : "linear-gradient(135deg, #2196f3 0%, #21cbf3 100%)",
+                    color: "white",
+                  }}
+                  src={profileUser?.image || undefined}
+                >
+                  {profileUser?.firstName?.[0]}
+                </Avatar>
+              </Tooltip>
 
               <Typography variant="h5" fontWeight="bold" gutterBottom>
                 {profileUser?.firstName} {profileUser?.lastName}
@@ -181,19 +187,38 @@ const Profile = () => {
               {profileUser?.nickname && (
                 <Typography
                   variant="subtitle1"
-                  color="text.secondary"
+                  color="text.main"
                   gutterBottom
                 >
                   🧑‍💻 כינוי: {profileUser.nickname}
                 </Typography>
               )}
 
-              <Typography variant="body2" color="text.secondary">
+              {profileUser?.country && (
+                <Typography variant="subtitle1" color="text.main">
+                  🌍 מדינה: {profileUser.country}
+                </Typography>
+              )}
+
+              {profileUser?.birthdate && (
+                <Typography variant="subtitle1" color="text.main">
+                  🎂 תאריך לידה:{" "}
+                  {new Date(profileUser.birthdate).toLocaleDateString("he-IL")}
+                </Typography>
+              )}
+
+              {profileUser?.phone && (
+                <Typography variant="body2" color="text.main">
+                  📞 טלפון: {profileUser.phone}
+                </Typography>
+              )}
+
+              <Typography variant="body2" color="text.main" mt={1}>
                 {isUserLoggedIn ? "אתה מחובר!" : "לא מחובר"}
               </Typography>
 
               {isUserLoggedIn && (
-                <Box mt={2}>
+                <Box mt={3} display="flex" flexDirection="column" gap={1}>
                   <Button
                     variant="contained"
                     color="primary"
@@ -201,6 +226,15 @@ const Profile = () => {
                     sx={{ borderRadius: 2 }}
                   >
                     ערוך פרטים
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    href="/edit-profile-image"
+                    sx={{ borderRadius: 2 }}
+                  >
+                    ערוך תמונה
                   </Button>
                 </Box>
               )}

@@ -18,7 +18,8 @@ import PostDetails from "./pages/postDetails";
 import OtherUserProfile from "./pages/otherUserProfile";
 import CreatePost from "./pages/CreatePost";
 import Favorites from "./pages/favorites";
-import EditPost from "./pages/editPost"; // ייבוא דף עריכת הפוסט
+import EditPost from "./pages/editPost"; 
+import EditProfileImage from "./pages/editProfileImage";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -50,6 +51,7 @@ const App = () => {
           <Route path="/post/:postId" element={<PostDetails />} />
           <Route path="/create" element={<CreatePost />} />
           <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/edit-profile-image" element={<EditProfileImage />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/edit/:postId" element={<EditPost />} />{" "}
           {/* נתיב עריכת פוסט */}

@@ -290,9 +290,11 @@ const Navbar = () => {
                   },
                 }}
               />
-              <IconButton type="submit" color="inherit">
-                <SearchIcon />
-              </IconButton>
+              <Tooltip title="חיפוש">
+                <IconButton type="submit" color="inherit">
+                  <SearchIcon />
+                </IconButton>
+              </Tooltip>
               {showResults && results && (
                 <SearchResults
                   results={results}

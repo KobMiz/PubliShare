@@ -6,13 +6,21 @@ import {
   Button,
   CircularProgress,
   Alert,
+  Snackbar,
 } from "@mui/material";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
+import { updateUser } from "../store/userSlice";
 
 const EditProfile = () => {
   const { user, token } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -23,7 +31,7 @@ const EditProfile = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -32,50 +40,52 @@ const EditProfile = () => {
         lastName: user.lastName || "",
         nickname: user.nickname || "",
         country: user.country || "",
-        birthdate: user.birthdate?.slice(0, 10) || "",
+        birthdate: user.birthdate ? user.birthdate.slice(0, 10) : "",
       });
     }
   }, [user]);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const handleSubmit = async () => {
-  try {
-    setLoading(true);
-    setError("");
-    setSuccess("");
+    try {
+      setLoading(true);
+      setError("");
+      setSuccess("");
 
-    // שלח רק שדות שהשתנו ושאינם ריקים
-    const updatedFields = {};
-    for (let key in formData) {
-      if (formData[key] !== user[key] && formData[key] !== "") {
-        updatedFields[key] = formData[key];
-      }
-    }
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        nickname: formData.nickname,
+        country: formData.country,
+        birthdate: formData.birthdate,
+      };
 
-    if (Object.keys(updatedFields).length === 0) {
-      setError("לא בוצע שינוי בפרטים או שחלקם ריקים.");
+      const response = await axios.patch(`/users/${user._id}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      dispatch(updateUser(response.data));
+      setSuccess("הפרטים עודכנו בהצלחה!");
+      setSnackbarOpen(true);
+      setTimeout(() => navigate("/profile"), 1500);
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      setError("אירעה שגיאה בעדכון הפרטים.");
+    } finally {
       setLoading(false);
-      return;
     }
+  };
 
-    console.log("🟢 שדות שנשלחים:", updatedFields);
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
 
-    await axios.patch(`/users/${user._id}`, updatedFields, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    setSuccess("הפרטים עודכנו בהצלחה!");
-    setTimeout(() => navigate("/profile"), 1500);
-  } catch (err) {
-    console.error(err);
-    setError("אירעה שגיאה בעדכון הפרטים.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  const handleEditImage = () => {
+    navigate("/edit-profile-image");
+  };
 
   return (
     <Box
@@ -86,15 +96,29 @@ const EditProfile = () => {
         p: 3,
         boxShadow: 3,
         borderRadius: 4,
-        backgroundColor: "background.paper",
+        backgroundColor: isDarkMode ? "grey.900" : "background.paper",
+        color: isDarkMode ? "grey.100" : "text.primary",
       }}
     >
-      <Typography variant="h5" textAlign="center" mb={3}>
+      <Typography
+        variant="h5"
+        textAlign="center"
+        mb={3}
+        color={isDarkMode ? "grey.100" : "text.primary"}
+      >
         עריכת פרטי משתמש
       </Typography>
 
-      {error && <Alert severity="error">{error}</Alert>}
-      {success && <Alert severity="success">{success}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {success}
+        </Alert>
+      )}
 
       <TextField
         name="firstName"
@@ -103,6 +127,12 @@ const EditProfile = () => {
         onChange={handleChange}
         fullWidth
         margin="normal"
+        InputLabelProps={{
+          style: { color: isDarkMode ? "grey.400" : undefined },
+        }}
+        InputProps={{
+          style: { color: isDarkMode ? "white" : undefined },
+        }}
       />
       <TextField
         name="lastName"
@@ -111,6 +141,12 @@ const EditProfile = () => {
         onChange={handleChange}
         fullWidth
         margin="normal"
+        InputLabelProps={{
+          style: { color: isDarkMode ? "grey.400" : undefined },
+        }}
+        InputProps={{
+          style: { color: isDarkMode ? "white" : undefined },
+        }}
       />
       <TextField
         name="nickname"
@@ -119,6 +155,12 @@ const EditProfile = () => {
         onChange={handleChange}
         fullWidth
         margin="normal"
+        InputLabelProps={{
+          style: { color: isDarkMode ? "grey.400" : undefined },
+        }}
+        InputProps={{
+          style: { color: isDarkMode ? "white" : undefined },
+        }}
       />
       <TextField
         name="country"
@@ -127,6 +169,12 @@ const EditProfile = () => {
         onChange={handleChange}
         fullWidth
         margin="normal"
+        InputLabelProps={{
+          style: { color: isDarkMode ? "grey.400" : undefined },
+        }}
+        InputProps={{
+          style: { color: isDarkMode ? "white" : undefined },
+        }}
       />
       <TextField
         name="birthdate"
@@ -137,9 +185,27 @@ const EditProfile = () => {
         InputLabelProps={{ shrink: true }}
         fullWidth
         margin="normal"
+        onClick={(e) => e.target.showPicker && e.target.showPicker()} // 💥 פותח את לוח השנה גם בלחיצה על כל השדה
+        sx={{
+          "& .MuiInputBase-root": {
+            color: isDarkMode ? "grey.100" : "inherit",
+          },
+          "& .MuiInputBase-input": {
+            color: isDarkMode ? "grey.100" : "inherit",
+            cursor: "pointer", // שיהיה גם חץ נחמד
+          },
+          "& .MuiSvgIcon-root": {
+            color: isDarkMode ? "grey.100" : "inherit",
+          },
+        }}
       />
 
-      <Box textAlign="center" mt={3}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mt={3}
+      >
         <Button
           variant="contained"
           color="primary"
@@ -148,7 +214,18 @@ const EditProfile = () => {
         >
           {loading ? <CircularProgress size={24} /> : "שמור"}
         </Button>
+
+        <Button variant="contained" color="primary" onClick={handleEditImage}>
+          עריכת תמונת פרופיל
+        </Button>
       </Box>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        message="הפרטים עודכנו בהצלחה."
+      />
     </Box>
   );
 };

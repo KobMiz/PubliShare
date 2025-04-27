@@ -16,7 +16,7 @@ export const login = createAsyncThunk(
   "user/login",
   async (credentials, thunkAPI) => {
     try {
-      return await authService.login(credentials); 
+      return await authService.login(credentials);
     } catch (error) {
       return thunkAPI.rejectWithValue(
         error.response?.data?.error || "Login failed"
@@ -30,7 +30,7 @@ export const register = createAsyncThunk(
   async (userData, thunkAPI) => {
     try {
       const response = await authService.register(userData);
-      return response; 
+      return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(
         error.response?.data?.error || "Registration failed"
@@ -48,6 +48,16 @@ const userSlice = createSlice({
       state.token = null;
       localStorage.removeItem("user");
       localStorage.removeItem("token");
+    },
+    updateUser: (state, action) => {
+      state.user = { ...state.user, ...action.payload };
+      localStorage.setItem("user", JSON.stringify(state.user));
+    },
+    updateProfileImage: (state, action) => {
+      if (state.user) {
+        state.user.image = action.payload;
+        localStorage.setItem("user", JSON.stringify(state.user));
+      }
     },
   },
   extraReducers: (builder) => {
@@ -79,7 +89,7 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.user = {
           ...action.payload.user,
-          image: action.payload.user.image || null, 
+          image: action.payload.user.image || null,
         };
         localStorage.setItem("user", JSON.stringify(action.payload.user));
       })
@@ -91,5 +101,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { logout } = userSlice.actions;
+export const { logout, updateUser, updateProfileImage } = userSlice.actions;
 export default userSlice.reducer;

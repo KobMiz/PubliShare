@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Box,
@@ -11,18 +11,22 @@ import {
   Button,
   TextField,
   IconButton,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { useSelector } from "react-redux";
 import LaunchIcon from "@mui/icons-material/Launch";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SendIcon from "@mui/icons-material/Send";
 import Comment from "../components/common/comment";
 
 const PostDetails = () => {
   const { postId } = useParams();
-  const { token } = useSelector((state) => state.user);
+  const { token, user } = useSelector((state) => state.user);
+  const navigate = useNavigate();
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +34,9 @@ const PostDetails = () => {
   const [commentText, setCommentText] = useState("");
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const open = Boolean(anchorEl);
 
   const fetchPost = async () => {
     try {
@@ -38,7 +45,7 @@ const PostDetails = () => {
       });
       setPost(data);
       setLikeCount(data.likes.length);
-      setIsLiked(data.likes.includes(token));
+      setIsLiked(data.likes.includes(user?._id));
     } catch (err) {
       console.error("שגיאה בטעינת פוסט:", err);
       setNotFound(true);
@@ -74,9 +81,33 @@ const PostDetails = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCommentText("");
-      fetchPost();
+      await fetchPost();
     } catch (err) {
       console.error("❌ שגיאה בעת שליחת תגובה:", err);
+    }
+  };
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEditPost = () => {
+    handleMenuClose();
+    navigate(`/edit/${postId}`);
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      await axios.delete(`/cards/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      navigate("/"); // אחרי מחיקה חוזרים לדף הבית
+    } catch (err) {
+      console.error("❌ שגיאה במחיקת פוסט:", err);
     }
   };
 
@@ -97,22 +128,43 @@ const PostDetails = () => {
     );
   }
 
+  const isOwnerOrAdmin = post.user_id?._id === user?._id || user?.isAdmin;
+
   return (
     <Box maxWidth="md" mx="auto" mt={5} p={2}>
-      <Box display="flex" alignItems="center" gap={2} mb={2}>
-        <Avatar src={post.user_id?.image} sx={{ width: 50, height: 50 }} />
-        <Box>
-          <Typography variant="h6">
-            {post.user_id?.firstName} {post.user_id?.lastName}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {post.user_id?.nickname}
-          </Typography>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
+      >
+        <Box display="flex" alignItems="center" gap={2}>
+          <Avatar src={post.user_id?.image} sx={{ width: 50, height: 50 }} />
+          <Box>
+            <Typography variant="h6">
+              {post.user_id?.firstName} {post.user_id?.lastName}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {post.user_id?.nickname}
+            </Typography>
+          </Box>
         </Box>
+
+        {isOwnerOrAdmin && (
+          <>
+            <IconButton onClick={handleMenuOpen}>
+              <MoreVertIcon />
+            </IconButton>
+            <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+              <MenuItem onClick={handleEditPost}>✏️ ערוך פוסט</MenuItem>
+              <MenuItem onClick={handleDeletePost}>🗑️ מחק פוסט</MenuItem>
+            </Menu>
+          </>
+        )}
       </Box>
 
       {post.text && (
-        <Typography variant="body1" sx={{ mb: 2 }}>
+        <Typography variant="body1" sx={{ mb: 2, fontSize: 20 }}>
           {post.text}
         </Typography>
       )}
@@ -166,25 +218,35 @@ const PostDetails = () => {
         </MuiLink>
       )}
 
-      <IconButton onClick={handleLikeClick}>
-        {isLiked ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
-      </IconButton>
-      <Typography variant="body2">{likeCount} לייקים</Typography>
+      <Box display="flex" alignItems="center" mt={2} mb={3}>
+        <IconButton onClick={handleLikeClick} color="primary">
+          {isLiked ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
+        </IconButton>
+        <Typography variant="body2">{likeCount} לייקים</Typography>
+      </Box>
 
-      <Divider sx={{ my: 3 }} />
+      <Divider sx={{ mb: 3 }} />
 
-      <Typography variant="h6">תגובות</Typography>
-      {post.comments.map((comment) => (
-        <Comment
-          key={comment._id}
-          comment={comment}
-          postId={postId}
-          token={token}
-          onUpdate={fetchPost}
-        />
-      ))}
+      <Typography variant="h6" mb={2}>
+        תגובות
+      </Typography>
+      {post.comments.length === 0 ? (
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          עדיין אין תגובות
+        </Typography>
+      ) : (
+        post.comments.map((comment) => (
+          <Comment
+            key={comment._id}
+            comment={comment}
+            postId={postId}
+            token={token}
+            onUpdate={fetchPost}
+          />
+        ))
+      )}
 
-      <Box display="flex" gap={1} mt={2}>
+      <Box display="flex" gap={1} mt={3}>
         <TextField
           fullWidth
           variant="outlined"

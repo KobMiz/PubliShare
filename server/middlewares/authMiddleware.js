@@ -13,7 +13,7 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const token = authHeader.split(" ")[1];
-    console.log("🔍 Extracted Token:", token); // check no' 2 
+    console.log("🔍 Extracted Token:", token); // check no' 2
 
     if (!token) {
       console.warn("❌ Access denied: Token is missing after 'Bearer'.");
@@ -30,12 +30,11 @@ const authMiddleware = (req, res, next) => {
   } catch (err) {
     console.error("❌ Token verification error:", err.message);
 
-   if (err.name === "TokenExpiredError") {
-     return res.status(401).json({
-       error: "זמן ההתחברות שלך הסתיים. נא להתחבר מחדש.",
-     });
-   }
-
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
+        error: "זמן ההתחברות שלך הסתיים. נא להתחבר מחדש.",
+      });
+    }
 
     return res.status(403).json({ error: "Invalid token." });
   }

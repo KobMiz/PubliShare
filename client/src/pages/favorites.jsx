@@ -55,21 +55,22 @@ const Favorites = () => {
 
   const isMobileView = useMediaQuery("(max-width:899px)");
 
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      try {
-        const { data } = await axios.get("/cards", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const liked = data.filter((card) => card.likes.includes(user._id));
-        setFavorites(liked);
-      } catch (err) {
-        console.error("שגיאה בשליפת מועדפים:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 🛠️ העברנו את fetchFavorites החוצה מה-useEffect
+  const fetchFavorites = async () => {
+    try {
+      const { data } = await axios.get("/cards", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const liked = data.filter((card) => card.likes.includes(user._id));
+      setFavorites(liked);
+    } catch (err) {
+      console.error("שגיאה בשליפת מועדפים:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchFavorites();
   }, [token, user._id]);
 
@@ -111,7 +112,11 @@ const Favorites = () => {
           <Slider {...sliderSettings}>
             {favorites.map((post) => (
               <Box key={post._id} px={1}>
-                <PostCard {...post} currentUserId={user._id} />
+                <PostCard
+                  {...post}
+                  currentUserId={user._id}
+                  onFavoriteToggle={fetchFavorites}
+                />
               </Box>
             ))}
           </Slider>

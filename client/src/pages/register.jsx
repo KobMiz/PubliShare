@@ -8,6 +8,7 @@ import {
   CircularProgress,
   Alert,
   Avatar,
+  Snackbar,
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -23,7 +24,8 @@ const Register = () => {
   );
 
   const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState("");
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required("שדה חובה"),
@@ -54,7 +56,7 @@ const Register = () => {
     validationSchema,
     onSubmit: async (values) => {
       if (file && values.image) {
-        alert("יש לבחור רק תמונה אחת – או קובץ מהמחשב או כתובת מהאינטרנט.");
+        setSnackbarOpen(true);
         return;
       }
 
@@ -77,8 +79,22 @@ const Register = () => {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    setFile(selectedFile);
-    setPreview(URL.createObjectURL(selectedFile));
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile));
+      formik.setFieldValue("image", "");
+    }
+  };
+
+  const handleImageUrlChange = (e) => {
+    const url = e.target.value;
+    formik.setFieldValue("image", url);
+    setPreview(url);
+    setFile(null);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -86,6 +102,7 @@ const Register = () => {
       <Typography variant="h4" align="center" gutterBottom>
         הרשמה
       </Typography>
+
       <form onSubmit={formik.handleSubmit} encType="multipart/form-data">
         <TextField
           label="שם פרטי"
@@ -162,9 +179,9 @@ const Register = () => {
           label="תאריך לידה"
           name="birthdate"
           type="date"
+          InputLabelProps={{ shrink: true }}
           fullWidth
           margin="normal"
-          InputLabelProps={{ shrink: true }}
           value={formik.values.birthdate}
           onChange={formik.handleChange}
           error={formik.touched.birthdate && Boolean(formik.errors.birthdate)}
@@ -172,17 +189,17 @@ const Register = () => {
         />
 
         <TextField
-          label="תמונת פרופיל (URL)"
+          label="קישור URL לתמונה (אופציונלי)"
           name="image"
           fullWidth
           margin="normal"
           value={formik.values.image}
-          onChange={formik.handleChange}
+          onChange={handleImageUrlChange}
           error={formik.touched.image && Boolean(formik.errors.image)}
           helperText={formik.touched.image && formik.errors.image}
         />
 
-        <Box mt={2} textAlign="center">
+        <Box textAlign="center" mt={2}>
           <input
             accept="image/*"
             style={{ display: "none" }}
@@ -195,18 +212,23 @@ const Register = () => {
               העלאת תמונה מהמחשב
             </Button>
           </label>
+
           {preview && (
             <Avatar
               src={preview}
-              alt="Preview"
-              sx={{ width: 80, height: 80, margin: "10px auto" }}
+              alt="תצוגה מקדימה"
+              sx={{ width: 80, height: 80, mt: 2, mx: "auto" }}
             />
           )}
         </Box>
 
-        {isError && <Alert severity="error">{errorMessage}</Alert>}
+        {isError && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {errorMessage}
+          </Alert>
+        )}
 
-        <Box mt={2}>
+        <Box mt={3}>
           <Button
             variant="contained"
             color="primary"
@@ -218,6 +240,13 @@ const Register = () => {
           </Button>
         </Box>
       </form>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        message="יש לבחור קובץ או קישור – לא את שניהם."
+      />
     </Container>
   );
 };
