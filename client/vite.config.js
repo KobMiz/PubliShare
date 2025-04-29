@@ -5,22 +5,22 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "^/users.*": {
+      "/users": {
         target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      "^/cards.*": {
+      "/cards": {
         target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      "^/contact.*": {
+      "/contact": {
         target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      "^/search.*": {
+      "/search": {
         target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,

@@ -27,6 +27,8 @@ coverage/
 
 # Uploaded files
 uploads/
+!uploads/.gitkeep
+
 
 # OS-generated files
 Thumbs.db
